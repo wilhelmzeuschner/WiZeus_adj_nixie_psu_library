@@ -26,7 +26,7 @@ class adjNixiePSU
 public:
 	/// Default constructor which assumes default resistance values
 	/// @param shdnPin specifies which Arduino pin is connected to the SHDN pin of the module
-	/// @see adjNixiePSU(int shdnPin, int r1, int r2, int rPotMax)
+	/// @see adjNixiePSU(int shdnPin, unsigned long r1, unsigned long r2, int rPotMax)
 	adjNixiePSU(int shdnPin);
 
 	/// Advanced constructor which allows to pass custom reststance values
@@ -35,13 +35,14 @@ public:
 	/// @param rPotMax This is the resistance the digital potentiometer has on its maximum setting
 	/// @param shdnPin Specifies which Arduino pin is connected to the SHDN pin of the module
 	/// @see adjNixiePSU(int shdnPin)
-	adjNixiePSU(int shdnPin, int r1, int r2, int rPotMax);
+	adjNixiePSU(int shdnPin, unsigned long r1, unsigned long r2, int rPotMax);
 
 	/// Sets the output voltage to the specified value
 	/// @param outputVoltage Desired output voltage
+	/// @return Voltage value that was set, since the passed parameter might exceed the min and max allowed voltages. Returns -1 if no connection to the digi pot could be established
 	/// @attention Since there is NO feedback of the actual output voltage to the Arduino, the actual output voltage might vary. The module itself does use a closed loop control system. This means that the module will attempt to maintain the voltage, independent of the load (within its physical limitations).
 	/// @see getSetOutputVoltage()
-	void setOutputVoltage(int outputVoltage);
+	int setOutputVoltage(unsigned int outputVoltage);
 
 	/// Returns the currently set output voltage
 	/// @return Currently set output voltage as int
@@ -49,26 +50,42 @@ public:
 	int getSetOutputVoltage();
 
 	/// Turns the high voltage output ON by setting the SHDN pin LOW
-	/// @return 0 if executed successfully, -1 on error: no connection to digi pot
+	/// @return 0 if executed successfully, -1 on error (no connection to digi pot)
 	/// @see turnOutputOff()
 	int turnOutputOn();
 
 	/// Turns the high voltage output OFF by setting the SHDN pin HIGH
-	/// @return 0 if executed successfully, -1 on error: no connection to digi pot
+	/// @return 0 if executed successfully, -1 on error (no connection to digi pot)
 	/// @see turnOutputOn()
 	int turnOutputOff();
 
 private:
+
+	/// Method attempts to find the digi pot on the I2C bus
+	/// @param address digi pot I2C address
+	/// @return digiPotConnectionStatus
+	/// @see digiPotConnectionStatus
+	int findDigiPot(int address);
+
+
+	/// Calculates the necessary pot resistance value based on the supplied voltage
+	/// @param voltage Desired output voltage
+	/// @return 0 to 127 which corresponds to the register value the digi pot needs to be set to
+	/// @attention Not all voltages are possible. Before calling this method, the voltage value should ideally already be clamped.
+	byte calcPotRegValFromVoltage(unsigned int voltage);
+
+
 	/// Internal class variables
-	int r1, r2, rPotMax;
-	int shdnPin;
-	int outputVoltage;
+	unsigned long r1, r2;
+	unsigned int rPotMax;
+	unsigned int shdnPin;
+	unsigned int outputVoltage;
 
 	/// Saves the current output state (ON / OFF), defaults to off on startup
 	bool outputState;
 
 	/// Status for the connection to the digi pot
-	/// 0 if not connected / not found
+	/// -1 if not connected / not found
 	/// 1 if connected / found
 	int digiPotConnectionStatus;
 };
