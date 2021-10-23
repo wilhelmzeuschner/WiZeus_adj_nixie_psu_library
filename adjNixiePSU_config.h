@@ -10,7 +10,7 @@
 /// 
 /// If the user attempts to set a higher voltage, it is clamped to this value
 /// @see MIN_OUTPUT_VOLTAGE
-#define MAX_OUTPUT_VOLTAGE 		170
+#define MAX_OUTPUT_VOLTAGE 		175
 
 /// This is the minimum allowed voltage.
 /// If the user attempts to set a lower voltage, it is clamped to this value
@@ -28,6 +28,7 @@
 /// This is the I2C address of the digital potentiometer IC
 /// 46 (dec) corresponds to 0x2E HEX
 #define POT_ADDRESS 			46
+#define POT_INSTRUCTION_ADDR	0
 
 /// Number of individual steps / resistances the digital pot has
 #define POT_NUM_STEPS			(128-1)
@@ -36,13 +37,13 @@
 /// This might seem illogical by themselves but the SHDN pin operates as active low.
 /// If the alias is used in the code, this is no issue / should not be confusing
 /// @see HV_PSU_OFF
-#define HV_PSU_ON				0
+#define HV_PSU_ON				LOW
 
 /// Logic assignment for OFF
 /// This might seem illogical by themselves but the SHDN pin operates as active low.
 /// If the alias is used in the code, this is no issue / should not be confusing 
 /// @see HV_PSU_ON
-#define HV_PSU_OFF				1
+#define HV_PSU_OFF				HIGH
 
 
 #endif

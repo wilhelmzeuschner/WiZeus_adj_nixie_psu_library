@@ -25,7 +25,7 @@
 var NAVTREE =
 [
   [ "adjNixiePSU", "index.html", [
-    [ "WiZeus_adj_nixie_psu_library", "md__r_e_a_d_m_e.html", null ],
+    [ "WiZeus_adj_nixie_psu_library", "a00018.html", null ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
@@ -46,7 +46,7 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_wi_zeus__adj__nixie__psu__library_8cpp.html"
+"a00002.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

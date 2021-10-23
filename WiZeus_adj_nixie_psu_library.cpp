@@ -3,54 +3,68 @@
 /// @date 03. October 2021
 /// @version 1
 
+#include <Arduino.h>
 #include <Wire.h>
 
 #include "WiZeus_adj_nixie_psu_library.h"
 #include "adjNixiePSU_config.h"
 
-adjNixiePSU::adjNixiePSU(int shdnPin)
+adjNixiePSU::adjNixiePSU(int inShdnPin)
 {
 	r1 = DEFAULT_R1;
 	r2 = DEFAULT_R2;
 	rPotMax = DEFAULT_R_POT_MAX;
 
-	shdnPin = shdnPin;
+	shdnPin = inShdnPin;
 
 	outputVoltage = 0;
 	outputState = false;
 
-	digiPotConnectionStatus = 0;
+	digiPotConnectionStatus = -1;
 }
 
-adjNixiePSU::adjNixiePSU(int shdnPin, unsigned long r1, unsigned long r2, int rPotMax)
+adjNixiePSU::adjNixiePSU(int inShdnPin, unsigned long inR1, unsigned long inR2, int inRPotMax)
 {
-	r1 = r1;
-	r2 = r2;
-	rPotMax = rPotMax;
+	r1 = inR1;
+	r2 = inR2;
+	rPotMax = inRPotMax;
 
-	shdnPin = shdnPin;
+	shdnPin = inShdnPin;
 
 	outputVoltage = 0;
 	outputState = false;
 
-	digiPotConnectionStatus = 0;
+	digiPotConnectionStatus = -1;
 }
 
-int adjNixiePSU::setOutputVoltage(unsigned int outputVoltage)
+void adjNixiePSU::init()
 {
-	/// Clamp to min / max
-	if (outputVoltage > MAX_OUTPUT_VOLTAGE)
-	{
+	pinMode(shdnPin, OUTPUT);
+	turnOutputOff();
+
+	//Attempt to connect to the digi-pot
+	findDigiPot(POT_ADDRESS);
+}
+
+int adjNixiePSU::setOutputVoltage(unsigned int inOutputVoltage)
+{
+	/// Clamp outputVoltage to min / max
+	if (inOutputVoltage > MAX_OUTPUT_VOLTAGE)
 		outputVoltage = MAX_OUTPUT_VOLTAGE;
-	}
-	else if (outputVoltage < MIN_OUTPUT_VOLTAGE)
-	{
+
+	else if (inOutputVoltage < MIN_OUTPUT_VOLTAGE)
 		outputVoltage = MIN_OUTPUT_VOLTAGE;
-	}
 
 	/// Check if connection to digi pot already exists
 	if (digiPotConnectionStatus == 1)
 	{
+		/// Write data to digi pot
+		Wire.beginTransmission(POT_ADDRESS);
+		Wire.write(byte(POT_INSTRUCTION_ADDR));
+		Wire.write(calcPotRegValFromVoltage(outputVoltage));
+		Wire.endTransmission();
+
+		return outputVoltage;
 	}
 	/// Not connected yet, attempt to connect
 	else
@@ -63,17 +77,25 @@ int adjNixiePSU::setOutputVoltage(unsigned int outputVoltage)
 		/// Pot was found, now begin to set the voltage
 		else
 		{
+			/// Write data to digi pot
+			Wire.beginTransmission(POT_ADDRESS);
+			Wire.write(byte(POT_INSTRUCTION_ADDR));
+			Wire.write(calcPotRegValFromVoltage(outputVoltage));
+			Wire.endTransmission();
+
+			return outputVoltage;
 		}
 	}
 }
 
 int adjNixiePSU::findDigiPot(int address)
 {
-	byte error;
+	unsigned char error;
 
 	Wire.begin();
 	Wire.beginTransmission(address);
 	error = Wire.endTransmission();
+	Wire.endTransmission();
 
 	/// A I2C device was found at the specified address, assume it is the digi pot
 	if (error == 0)
@@ -89,20 +111,27 @@ int adjNixiePSU::findDigiPot(int address)
 	}
 }
 
-byte adjNixiePSU::calcPotRegValFromVoltage(unsigned int voltage)
+unsigned char adjNixiePSU::calcPotRegValFromVoltage(unsigned int voltage)
 {
 	unsigned int rPot;
-	byte potReg;
+	unsigned char potReg;
 
 	/// Calculate the digi pot resistance required to achieve the desired voltage
-	rPot = ((r1 * V_REF))/(voltage - V_REF)) - r2;
+	rPot = ((r1 * V_REF) / (voltage - V_REF)) - r2;
 
 	/// Calculate the potentiometer value (0 to 127)
-	potReg = float((float(temp_resistance) / float(rPotMax)) * POT_NUM_STEPS);
+	potReg = float((float(rPot) / float(rPotMax)) * POT_NUM_STEPS);
 
+	if (potReg > 127)
+	{
+		potReg = 127;
+	}
+	else if (potReg < 0)
+	{
+		potReg = 0;
+	}
 
-
-	return 0;
+	return potReg;
 }
 
 int adjNixiePSU::getSetOutputVoltage()
@@ -115,7 +144,7 @@ int adjNixiePSU::turnOutputOn()
 	if (digiPotConnectionStatus == 1)
 	{
 		outputState = HV_PSU_ON;
-		digitalWrite(shdnPin, HV_PSU_ON);
+		digitalWrite(shdnPin, outputState);
 		return 0;
 	}
 	else
@@ -124,12 +153,37 @@ int adjNixiePSU::turnOutputOn()
 
 int adjNixiePSU::turnOutputOff()
 {
-	if (digiPotConnectionStatus)
-	{
-		outputState = HV_PSU_OFF;
-		digitalWrite(shdnPin, HV_PSU_OFF);
-		return 0;
-	}
-	else
-		return -1;
+	outputState = HV_PSU_OFF;
+	digitalWrite(shdnPin, outputState);
+	return 0;
+}
+
+unsigned long adjNixiePSU::getR1()
+{
+	return r1;
+}
+
+unsigned long adjNixiePSU::getR2()
+{
+	return r2;
+}
+
+unsigned int adjNixiePSU::getRPotMax()
+{
+	return rPotMax;
+}
+
+unsigned int adjNixiePSU::getSHDNPin()
+{
+	return shdnPin;
+}
+
+bool adjNixiePSU::getOutputState()
+{
+	return outputState;
+}
+
+int adjNixiePSU::getDigiPotConnectionStatus()
+{
+	return digiPotConnectionStatus;
 }

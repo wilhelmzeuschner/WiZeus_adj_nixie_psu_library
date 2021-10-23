@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['setoutputvoltage_0',['setOutputVoltage',['../classadj_nixie_p_s_u.html#ad081ecd160f9f28f63a8502da22f139e',1,'adjNixiePSU']]]
+  ['init_0',['init',['../a00017.html#a0b3fbd66b4fccc6c4d9fef61f8a17ddd',1,'adjNixiePSU']]]
 ];

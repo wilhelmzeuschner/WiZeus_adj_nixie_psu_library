@@ -22,7 +22,6 @@
 /// If these values do not match the hardware configuration, the second constructor option allows to pass custom values
 class adjNixiePSU
 {
-
 public:
 	/// Default constructor which assumes default resistance values
 	/// @param shdnPin specifies which Arduino pin is connected to the SHDN pin of the module
@@ -37,9 +36,13 @@ public:
 	/// @see adjNixiePSU(int shdnPin)
 	adjNixiePSU(int shdnPin, unsigned long r1, unsigned long r2, int rPotMax);
 
+	/// Init function
+	/// Sets all pins to the the right mode and attempts to connect to the digi-pot
+	void init();
+
 	/// Sets the output voltage to the specified value
 	/// @param outputVoltage Desired output voltage
-	/// @return Voltage value that was set, since the passed parameter might exceed the min and max allowed voltages. Returns -1 if no connection to the digi pot could be established
+	/// @return Voltage value that was set. Since the passed parameter might exceed the min and max allowed voltages. Returns -1 if no connection to the digi pot could be established
 	/// @attention Since there is NO feedback of the actual output voltage to the Arduino, the actual output voltage might vary. The module itself does use a closed loop control system. This means that the module will attempt to maintain the voltage, independent of the load (within its physical limitations).
 	/// @see getSetOutputVoltage()
 	int setOutputVoltage(unsigned int outputVoltage);
@@ -54,26 +57,47 @@ public:
 	/// @see turnOutputOff()
 	int turnOutputOn();
 
-	/// Turns the high voltage output OFF by setting the SHDN pin HIGH
-	/// @return 0 if executed successfully, -1 on error (no connection to digi pot)
+	/// Turns the high voltage output OFF by setting the SHDN pin HIGH. Does not check the connection status
+	/// @return 0 
 	/// @see turnOutputOn()
 	int turnOutputOff();
 
-private:
+	/// Simply returns the value of r1
+	/// @return r1
+	unsigned long getR1();
 
+	/// Simply returns the value of r2
+	/// @return r2
+	unsigned long getR2();
+
+	/// Simply returns the value of rPotMax
+	/// @return rPotMax
+	unsigned int getRPotMax();
+
+	/// Simply returns the value of shdnPin
+	/// @return shdnPin
+	unsigned int getSHDNPin();
+
+	/// Simply returns the value of outputState
+	/// @return outputState
+	bool getOutputState();
+
+	/// Simply returns the value of digiPotConnectionStatus
+	/// @return digiPotConnectionStatus
+	int getDigiPotConnectionStatus();
+
+private:
 	/// Method attempts to find the digi pot on the I2C bus
 	/// @param address digi pot I2C address
 	/// @return digiPotConnectionStatus
 	/// @see digiPotConnectionStatus
 	int findDigiPot(int address);
 
-
 	/// Calculates the necessary pot resistance value based on the supplied voltage
 	/// @param voltage Desired output voltage
 	/// @return 0 to 127 which corresponds to the register value the digi pot needs to be set to
 	/// @attention Not all voltages are possible. Before calling this method, the voltage value should ideally already be clamped.
-	byte calcPotRegValFromVoltage(unsigned int voltage);
-
+	unsigned char calcPotRegValFromVoltage(unsigned int voltage);
 
 	/// Internal class variables
 	unsigned long r1, r2;
