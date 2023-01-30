@@ -9,6 +9,8 @@
 #include "WiZeus_adj_nixie_psu_library.h"
 #include "adjNixiePSU_config.h"
 
+
+/// Default values for R1, R2 and other properties
 adjNixiePSU::adjNixiePSU(int inShdnPin)
 {
 	r1 = DEFAULT_R1;
@@ -23,6 +25,7 @@ adjNixiePSU::adjNixiePSU(int inShdnPin)
 	digiPotConnectionStatus = -1;
 }
 
+/// Custom (user-defined) values for the properties
 adjNixiePSU::adjNixiePSU(int inShdnPin, unsigned long inR1, unsigned long inR2, int inRPotMax)
 {
 	r1 = inR1;

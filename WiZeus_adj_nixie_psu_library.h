@@ -58,7 +58,7 @@ public:
 	int turnOutputOn();
 
 	/// Turns the high voltage output OFF by setting the SHDN pin HIGH. Does not check the connection status
-	/// @return 0 
+	/// @return 0
 	/// @see turnOutputOn()
 	int turnOutputOff();
 
